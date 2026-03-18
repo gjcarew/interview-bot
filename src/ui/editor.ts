@@ -1,4 +1,7 @@
-import * as readline from 'readline';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
+import * as childProcess from 'child_process';
 
 export function applyLine(currentCode: string, newLine: string): string {
   if (currentCode === '') return newLine;
@@ -22,27 +25,16 @@ export function buildEditorPrompt(functionSignature: string): string {
 }
 
 export async function openEditor(initialCode: string): Promise<string> {
-  process.stdout.write(buildEditorPrompt(initialCode));
+  const suffix = Math.random().toString(36).slice(2, 7);
+  const tmpFile = path.join(os.tmpdir(), `interview-${suffix}.js`);
 
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
+  fs.writeFileSync(tmpFile, initialCode);
 
-  let currentCode = initialCode;
+  const editor = process.env.EDITOR ?? 'vi';
+  childProcess.spawnSync(editor, [tmpFile], { stdio: 'inherit' });
 
-  return new Promise((resolve) => {
-    rl.on('line', (line) => {
-      if (isSubmitSignal(line)) {
-        rl.close();
-        resolve(currentCode);
-      } else {
-        currentCode = applyLine(currentCode, line);
-      }
-    });
+  const code = fs.readFileSync(tmpFile, 'utf8') as string;
+  fs.unlinkSync(tmpFile);
 
-    rl.on('close', () => {
-      resolve(currentCode);
-    });
-  });
+  return code;
 }
