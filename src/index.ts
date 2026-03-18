@@ -38,6 +38,10 @@ async function main(): Promise<void> {
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 
   console.log('\n🎤  Welcome to Interview Bot!\n');
+  console.log('Controls:');
+  console.log('  • Type "next" or "ready" to advance to the next phase');
+  console.log('  • Type "done" to end the follow-up phase');
+  console.log('  • Press Ctrl+C to exit at any time\n');
 
   console.log('Select difficulty: (1) Easy  (2) Medium  (3) Hard');
   const choice = await ask(rl, '> ');
@@ -63,7 +67,8 @@ async function main(): Promise<void> {
   displayMessage('assistant', openingResponse);
 
   while (true) {
-    const input = await ask(rl, '\nYou: ');
+    const input = await ask(rl, '\nYou (type "next" to proceed): ');
+
     const normalized = input.trim().toLowerCase();
     if (normalized === 'next' || normalized === 'ready') break;
 
@@ -83,7 +88,7 @@ async function main(): Promise<void> {
   displayMessage('assistant', planningOpening);
 
   while (true) {
-    const input = await ask(rl, '\nYou: ');
+    const input = await ask(rl, '\nYou (type "next" to proceed): ');
     if (input.trim().toLowerCase() === 'next') break;
 
     session = addMessage(session, 'user', input);
@@ -128,7 +133,7 @@ async function main(): Promise<void> {
   displayMessage('assistant', followupOpening);
 
   while (true) {
-    const input = await ask(rl2, '\nYou: ');
+    const input = await ask(rl2, '\nYou (type "done" to finish): ');
     if (input.trim().toLowerCase() === 'done') break;
 
     session = addMessage(session, 'user', input);
