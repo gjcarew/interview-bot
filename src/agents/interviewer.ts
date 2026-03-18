@@ -2,14 +2,35 @@ import type { InterviewSession } from '../types';
 import { llmClient, DEFAULT_MODEL } from '../lib/llm';
 
 function buildSystemPrompt(session: InterviewSession): string {
-  const base =
-    'You are a technical interviewer at a top tech company conducting a coding interview. Be professional, encouraging, and helpful without giving away answers.';
+  const { problem, phase } = session;
+
+  const problemContext = `
+## Problem You Are Presenting
+**Title:** ${problem.title}
+**Difficulty:** ${problem.difficulty}
+**Category:** ${problem.category}
+
+**Description:**
+${problem.description}
+
+**Examples:**
+${problem.examples.map((e, i) => `Example ${i + 1}:\n  Input: ${e.input}\n  Output: ${e.output}${e.explanation ? `\n  Explanation: ${e.explanation}` : ''}`).join('\n')}
+
+**Constraints:**
+${problem.constraints.map((c) => `- ${c}`).join('\n')}
+`.trim();
+
+  const base = `You are a technical interviewer at a top tech company conducting a coding interview. Be professional, encouraging, and helpful — but do not write code or give away the solution.
+
+${problemContext}
+
+You know this problem thoroughly. You can confirm example inputs/outputs, clarify the problem statement, and answer questions about constraints. Do not be evasive about the problem — you presented it.`;
 
   const phaseGuidance: Record<string, string> = {
     setup:
-      'The candidate is asking clarifying questions about the problem. Answer their questions helpfully and in-character as an interviewer.',
+      'Present the problem warmly. Invite the candidate to read it and ask any clarifying questions.',
     clarification:
-      'The candidate is asking clarifying questions about the problem. Answer their questions helpfully and in-character as an interviewer.',
+      'The candidate is asking clarifying questions. Answer directly and helpfully — you know the problem well. Confirm examples, constraints, and edge cases as needed.',
     planning:
       'The candidate is explaining their approach. Listen actively, ask probing questions about edge cases or complexity.',
     coding:
@@ -19,7 +40,7 @@ function buildSystemPrompt(session: InterviewSession): string {
     debrief: 'The interview is wrapping up. Be warm and professional.',
   };
 
-  return `${base}\n\n${phaseGuidance[session.phase] ?? ''}`;
+  return `${base}\n\n## Current Phase: ${phase.toUpperCase()}\n${phaseGuidance[phase] ?? ''}`;
 }
 
 export async function getInterviewerResponse(session: InterviewSession): Promise<string> {
