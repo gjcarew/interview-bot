@@ -20,6 +20,9 @@ import {
   displayMessage,
   displayRunResults,
   displayFeedback,
+  displayTimerStart,
+  displayTimerWarning,
+  displayTimerExpired,
 } from './ui/display';
 import type { Difficulty, InterviewSession } from './types';
 
@@ -102,9 +105,24 @@ async function main(): Promise<void> {
   // ── Coding ───────────────────────────────────────────────────────────────────
   displayPhaseHeader('coding');
 
+  const CODING_DURATION_MS = 20 * 60 * 1000;
+  const WARNING_THRESHOLD_MS = 5 * 60 * 1000;
+  const codingStartedAt = Date.now();
+
+  displayTimerStart(20);
+
   // openEditor creates its own readline interface over stdin, so close ours first
   rl.close();
   const submittedCode = await openEditor(problem.functionSignature);
+
+  const elapsedMs = Date.now() - codingStartedAt;
+  const remainingMs = CODING_DURATION_MS - elapsedMs;
+
+  if (remainingMs <= 0) {
+    displayTimerExpired();
+  } else if (remainingMs <= WARNING_THRESHOLD_MS) {
+    displayTimerWarning(Math.ceil(remainingMs / 60_000));
+  }
 
   session = submitCode(session, submittedCode);
 

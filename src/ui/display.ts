@@ -160,3 +160,15 @@ export function displayPhaseHeader(phase: InterviewPhase): void {
 export function clearScreen(): void {
   process.stdout.write('\x1b[2J\x1b[H');
 }
+
+export function displayTimerStart(durationMinutes: number): void {
+  console.log(`\n${styled(A.bold, A.cyan, `⏱  Timer started: ${durationMinutes} min — good luck!`)}\n`);
+}
+
+export function displayTimerWarning(minutesRemaining: number): void {
+  console.log(`\n${styled(A.bold, A.yellow, `⚠  ${minutesRemaining} min remaining in the coding phase!`)}\n`);
+}
+
+export function displayTimerExpired(): void {
+  console.log(`\n${styled(A.bold, A.red, '🔔  Time\'s up! Your coding time has expired — wrap up your solution when ready.')}\n`);
+}
