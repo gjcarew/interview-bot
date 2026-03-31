@@ -168,6 +168,13 @@ export const ALL_PROBLEMS: Problem[] = [
   constructBinaryTreeFromPreorderAndInorder,
   binaryTreeMaximumPathSum,
   serializeAndDeserializeBinaryTree,
+  kthLargestElementInStream,
+  lastStoneWeight,
+  kClosestPointsToOrigin,
+  kthLargestElementInArray,
+  taskScheduler,
+  designTwitter,
+  findMedianFromDataStream,
 ];
 
 export const PROBLEMS_BY_ID: Record<string, Problem> = Object.fromEntries(
