@@ -94,6 +94,20 @@ import {
   binaryTreeMaximumPathSum,
   serializeAndDeserializeBinaryTree,
 } from './trees';
+import {
+  climbingStairs,
+  minCostClimbingStairs,
+  houseRobber,
+  houseRobberII,
+  longestPalindromicSubstring,
+  palindromicSubstrings,
+  decodeWays,
+  coinChange,
+  maximumProductSubarray,
+  wordBreak,
+  longestIncreasingSubsequence,
+  partitionEqualSubsetSum,
+} from './1d-dp';
 
 export const ALL_PROBLEMS: Problem[] = [
   containsDuplicate,
@@ -175,6 +189,18 @@ export const ALL_PROBLEMS: Problem[] = [
   taskScheduler,
   designTwitter,
   findMedianFromDataStream,
+  climbingStairs,
+  minCostClimbingStairs,
+  houseRobber,
+  houseRobberII,
+  longestPalindromicSubstring,
+  palindromicSubstrings,
+  decodeWays,
+  coinChange,
+  maximumProductSubarray,
+  wordBreak,
+  longestIncreasingSubsequence,
+  partitionEqualSubsetSum,
 ];
 
 export const PROBLEMS_BY_ID: Record<string, Problem> = Object.fromEntries(
