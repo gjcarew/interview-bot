@@ -1,7 +1,7 @@
 import * as readline from 'readline';
 import * as dotenv from 'dotenv';
 
-import { getRandomProblem } from './interview/problemBank';
+import { ALL_PROBLEMS } from '../data/problems/index';
 import {
   createSession,
   addMessage,
@@ -24,7 +24,8 @@ import {
   displayTimerWarning,
   displayTimerExpired,
 } from './ui/display';
-import type { Difficulty, InterviewSession } from './types';
+import { loadProgress, saveProgress, getNextProblem, recordResult } from './spacedRepetition/index';
+import type { InterviewSession } from './types';
 
 dotenv.config();
 
@@ -46,18 +47,13 @@ async function main(): Promise<void> {
   console.log('  • Type "done" to end the follow-up phase');
   console.log('  • Press Ctrl+C to exit at any time\n');
 
-  console.log('Select difficulty: (1) Easy  (2) Medium  (3) Hard');
-  const choice = await ask(rl, '> ');
-  const difficulty: Difficulty = choice === '1' ? 'Easy' : choice === '2' ? 'Medium' : 'Hard';
+  const progress = loadProgress();
+  const { problem, isReview } = getNextProblem(progress, ALL_PROBLEMS);
 
-  const problem = getRandomProblem({ difficulty });
-  if (!problem) {
-    console.error(`No problems found for difficulty: ${difficulty}`);
-    rl.close();
-    process.exit(1);
-  }
+  const indicator = isReview ? '🔄 Review' : '🆕 New';
+  console.log(`${indicator}: ${problem.title}  (NeetCode #${problem.neetcodeId})\n`);
 
-  let session: InterviewSession = createSession(problem, difficulty);
+  let session: InterviewSession = createSession(problem, problem.difficulty);
   session = advancePhase(session); // setup → clarification
 
   displayProblem(problem);
@@ -169,6 +165,19 @@ async function main(): Promise<void> {
 
   const feedback = await evaluateSession(session);
   displayFeedback(feedback);
+
+  const reviewDate = new Date().toISOString().split('T')[0];
+  const updatedProgress = recordResult(progress, problem, feedback, reviewDate);
+  saveProgress(updatedProgress);
+
+  const nextReviewDate = updatedProgress.problems[problem.id]?.nextReviewDate;
+  if (nextReviewDate) {
+    const daysUntil = Math.round(
+      (new Date(nextReviewDate).getTime() - new Date(reviewDate).getTime()) / 86400000,
+    );
+    const when = daysUntil === 0 ? 'today' : daysUntil === 1 ? 'tomorrow' : `in ${daysUntil} days`;
+    console.log(`\n📅  Next review of "${problem.title}": ${nextReviewDate} (${when})\n`);
+  }
 }
 
 main().catch((err: unknown) => {
