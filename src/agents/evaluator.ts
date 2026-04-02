@@ -53,7 +53,41 @@ Respond with ONLY a valid JSON object with these exact fields:
 
   try {
     return JSON.parse(content) as Feedback;
-  } catch (e) {
-    throw new Error('Evaluator received malformed JSON from LLM: ' + (e as Error).message);
+  } catch {
+    const extracted = extractJsonFromText(content);
+    if (extracted) return extracted;
+    return buildFallbackFeedback(passRate);
   }
+}
+
+/** Try to pull a JSON object out of text that may include markdown fences or prose. */
+function extractJsonFromText(text: string): Feedback | null {
+  const candidates = [
+    text.match(/```(?:json)?\s*([\s\S]*?)\s*```/)?.[1],
+    text.match(/(\{[\s\S]*\})/)?.[1],
+  ];
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+    try {
+      return JSON.parse(candidate) as Feedback;
+    } catch {
+      // try next candidate
+    }
+  }
+  return null;
+}
+
+/** Construct a safe fallback Feedback when the LLM response cannot be parsed. */
+function buildFallbackFeedback(passRate: number): Feedback {
+  return {
+    correctnessScore: Math.round(passRate * 100),
+    timeComplexity: 'Unknown',
+    spaceComplexity: 'Unknown',
+    communicationScore: 5,
+    strengths: [],
+    improvements: [],
+    summary:
+      'Evaluation could not be parsed from the LLM response. ' +
+      'Correctness score has been estimated from test results.',
+  };
 }

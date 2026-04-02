@@ -142,28 +142,37 @@ describe('evaluateSession', () => {
     expect(Array.isArray(result.improvements)).toBe(true);
   });
 
-  test('throws or returns default Feedback when LLM returns malformed JSON', async () => {
+  test('returns a fallback Feedback when LLM returns malformed JSON', async () => {
     getMockedCreate().mockResolvedValue(mockLlmResponse('not valid json'));
     const session = buildSession('function twoSum() {}', 5, 5);
 
-    let result: Feedback | undefined;
-    let threw = false;
+    const result = await evaluateSession(session);
 
-    try {
-      result = await evaluateSession(session);
-    } catch {
-      threw = true;
-    }
+    expect(result).toBeDefined();
+    expect(typeof result.summary).toBe('string');
+    expect(result.summary.length).toBeGreaterThan(0);
+    // correctnessScore should be estimated from passRate (5/5 = 100%)
+    expect(result.correctnessScore).toBe(100);
+  });
 
-    if (!threw) {
-      // Returned a default/error Feedback — summary should signal the problem
-      expect(result).toBeDefined();
-      expect(typeof result!.summary).toBe('string');
-      expect(result!.summary.length).toBeGreaterThan(0);
-    } else {
-      // Throwing is also acceptable
-      expect(threw).toBe(true);
-    }
+  test('extracts JSON wrapped in markdown code fences', async () => {
+    const fenced = '```json\n' + JSON.stringify(validFeedbackJson) + '\n```';
+    getMockedCreate().mockResolvedValue(mockLlmResponse(fenced));
+    const session = buildSession('function twoSum() {}', 5, 5);
+
+    const result = await evaluateSession(session);
+
+    expect(result.correctnessScore).toBe(validFeedbackJson.correctnessScore);
+    expect(result.summary).toBe(validFeedbackJson.summary);
+  });
+
+  test('fallback correctnessScore reflects partial pass rate', async () => {
+    getMockedCreate().mockResolvedValue(mockLlmResponse('not valid json'));
+    const session = buildSession('function twoSum() {}', 3, 5);
+
+    const result = await evaluateSession(session);
+
+    expect(result.correctnessScore).toBe(60);
   });
 
   test('summary is a non-empty string', async () => {
