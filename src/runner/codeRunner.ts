@@ -5,6 +5,23 @@ function deepEqual(a: unknown, b: unknown): boolean {
   return JSON.stringify(a) === JSON.stringify(b);
 }
 
+/** Reformat vm.Script syntax error stacks from "file:line\n code\n ^^^" to "Line N in file\n code\n ^^^" */
+function formatSyntaxError(e: unknown): string {
+  const errLike = e as { stack?: string; message?: string };
+  const stack = typeof errLike?.stack === 'string' ? errLike.stack : null;
+  if (!stack) return errLike?.message ?? String(e);
+  return stack
+    .replace(/^([^:\n]+):(\d+)\n/, (_, file, line) => `Line ${line} in ${file}\n`)
+    .replace(/\n\n(SyntaxError:)/, '\n$1');
+}
+
+/** Return the full stack trace for a runtime error */
+function formatRuntimeError(e: unknown): string {
+  const errLike = e as { stack?: string; message?: string };
+  if (typeof errLike?.stack === 'string') return errLike.stack;
+  return errLike?.message ?? String(e);
+}
+
 export function runCode(code: string, testCases: TestCase[]): RunResult {
   if (testCases.length === 0) {
     return { results: [], passed: 0, failed: 0, total: 0, passRate: 0 };
@@ -28,12 +45,12 @@ export function runCode(code: string, testCases: TestCase[]): RunResult {
 
     let script: vm.Script;
     try {
-      script = new vm.Script(code);
+      script = new vm.Script(code, { filename: 'solution.js' });
     } catch (e) {
       return {
         testCase,
         status: 'error',
-        errorMessage: e instanceof Error ? e.message : String(e),
+        errorMessage: formatSyntaxError(e),
         durationMs: 0,
       } satisfies TestResult;
     }
@@ -42,11 +59,10 @@ export function runCode(code: string, testCases: TestCase[]): RunResult {
     try {
       script.runInContext(sandbox);
     } catch (e) {
-      const err = e instanceof Error ? e : new Error(String(e));
       return {
         testCase,
         status: 'error',
-        errorMessage: err.message,
+        errorMessage: formatRuntimeError(e),
         durationMs: 0,
       } satisfies TestResult;
     }
@@ -67,7 +83,7 @@ export function runCode(code: string, testCases: TestCase[]): RunResult {
       return {
         testCase,
         status: isTimeout ? 'timeout' : 'error',
-        errorMessage: err.message,
+        errorMessage: isTimeout ? err.message : formatRuntimeError(e),
         durationMs: Date.now() - start,
       } satisfies TestResult;
     }

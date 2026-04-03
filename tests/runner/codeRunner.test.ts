@@ -55,6 +55,32 @@ describe('runCode', () => {
     expect(result.results[0].status).toBe('error');
   });
 
+  it('includes code snippet and line number in syntax error message', () => {
+    const code = [
+      'function twoSum(nums, target) {',
+      '  const fMap = new Map();',
+      '  for (let i = 0; i < nums.length; i++) {',
+      '    fMap.set(i, ++(fMap.get(i) ?? 0))',
+      '  }',
+      '}',
+    ].join('\n');
+    const cases: TestCase[] = [{ input: [], expected: null }];
+    const result = runCode(code, cases);
+    const msg = result.results[0].errorMessage ?? '';
+    expect(msg).toMatch(/Line \d+ in solution\.js/);
+    expect(msg).toMatch(/\^\^+/);
+    expect(msg).toContain('SyntaxError');
+  });
+
+  it('includes stack trace in runtime error message', () => {
+    const code = `function broken() { throw new Error('oops'); }`;
+    const cases: TestCase[] = [{ input: [], expected: null }];
+    const result = runCode(code, cases);
+    const msg = result.results[0].errorMessage ?? '';
+    expect(msg).toContain('Error: oops');
+    expect(msg).toMatch(/at broken/);
+  });
+
   it('times out an infinite loop', () => {
     const code = `function forever() { while(true) {} }`;
     const cases: TestCase[] = [{ input: [], expected: null }];

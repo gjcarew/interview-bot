@@ -114,7 +114,8 @@ export function displayRunResults(result: RunResult): void {
       console.log(`     Actual:   ${styled(A.red, JSON.stringify(r.actual))}`);
     } else if (r.status === 'error') {
       console.log(`  ${icon} ${styled(A.yellow, label)} ${time}`);
-      console.log(`     ${styled(A.dim, r.errorMessage ?? 'Unknown error')}`);
+      const errorLines = (r.errorMessage ?? 'Unknown error').split('\n');
+      errorLines.forEach((line) => console.log(`     ${styled(A.dim, line)}`))
     } else {
       console.log(`  ${icon} ${styled(A.yellow, label)} — timed out ${time}`);
     }
