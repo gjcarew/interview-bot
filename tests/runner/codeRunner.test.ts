@@ -1,4 +1,4 @@
-import { runCode } from '../../src/runner/codeRunner';
+import { runCode, hasErrors } from '../../src/runner/codeRunner';
 import { TestCase, TestResult } from '../../src/types';
 
 const twoSumCorrect = `
@@ -90,5 +90,32 @@ describe('runCode', () => {
     expect(result.passed).toBe(1);
     expect(result.failed).toBe(1);
     expect(result.passRate).toBe(0.5);
+  });
+});
+
+describe('hasErrors', () => {
+  it('returns true when a syntax error prevents code from compiling', () => {
+    const result = runCode(`function bad( { }`, [{ input: [], expected: null }]);
+    expect(hasErrors(result)).toBe(true);
+  });
+
+  it('returns true when a runtime error is thrown during execution', () => {
+    const result = runCode(`function broken() { throw new Error('oops'); }`, [{ input: [], expected: null }]);
+    expect(hasErrors(result)).toBe(true);
+  });
+
+  it('returns false when all tests pass', () => {
+    const result = runCode(twoSumCorrect, twoSumCases);
+    expect(hasErrors(result)).toBe(false);
+  });
+
+  it('returns false when tests fail with wrong output (not errors)', () => {
+    const result = runCode(twoSumWrong, twoSumCases);
+    expect(hasErrors(result)).toBe(false);
+  });
+
+  it('returns false for an empty result set', () => {
+    const result = runCode(twoSumCorrect, []);
+    expect(hasErrors(result)).toBe(false);
   });
 });

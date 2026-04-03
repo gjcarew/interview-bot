@@ -82,3 +82,7 @@ export function runCode(code: string, testCases: TestCase[]): RunResult {
   const failed = results.filter((r) => r.status !== 'pass').length;
   return { results, passed, failed, total: testCases.length, passRate: passed / testCases.length };
 }
+
+export function hasErrors(result: RunResult): boolean {
+  return result.results.some((r) => r.status === 'error');
+}

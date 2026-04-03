@@ -12,7 +12,7 @@ import {
 } from './interview/session';
 import { getInterviewerResponse } from './agents/interviewer';
 import { evaluateSession } from './agents/evaluator';
-import { runCode } from './runner/codeRunner';
+import { runCode, hasErrors } from './runner/codeRunner';
 import { openEditor } from './ui/editor';
 import {
   displayProblem,
@@ -177,6 +177,31 @@ async function main(): Promise<void> {
     );
     const when = daysUntil === 0 ? 'today' : daysUntil === 1 ? 'tomorrow' : `in ${daysUntil} days`;
     console.log(`\n📅  Next review of "${problem.title}": ${nextReviewDate} (${when})\n`);
+  }
+
+  // ── Post-review fix loop ──────────────────────────────────────────────────────
+  if (session.runResult && hasErrors(session.runResult)) {
+    console.log('⚠  Your submission had compilation errors — your code did not run during the interview.');
+    console.log('   You can fix it here for practice (this won\'t affect your score).\n');
+
+    let currentCode = session.submittedCode!;
+
+    while (true) {
+      const rlFix = readline.createInterface({ input: process.stdin, output: process.stdout });
+      const answer = await ask(rlFix, 'Would you like to fix your code? (y/n): ');
+      rlFix.close();
+
+      if (answer.trim().toLowerCase() !== 'y') break;
+
+      currentCode = await openEditor(currentCode);
+      const fixResult = runCode(currentCode, problem.testCases);
+      displayRunResults(fixResult);
+
+      if (!hasErrors(fixResult) && fixResult.passed === fixResult.total) {
+        console.log('✅  All tests passing!\n');
+        break;
+      }
+    }
   }
 }
 
