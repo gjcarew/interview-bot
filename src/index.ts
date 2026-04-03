@@ -12,7 +12,7 @@ import {
 } from './interview/session';
 import { getInterviewerResponse } from './agents/interviewer';
 import { evaluateSession } from './agents/evaluator';
-import { runCode, hasErrors } from './runner/codeRunner';
+import { runCode } from './runner/codeRunner';
 import { openEditor } from './ui/editor';
 import {
   displayProblem,
@@ -127,11 +127,40 @@ async function main(): Promise<void> {
 
   displayRunResults(runResult);
 
-  session = addMessage(session, 'user', 'Submitted code:\n' + submittedCode);
+  // ── Pre-follow-up fix loop ────────────────────────────────────────────────
+  let finalCode = submittedCode;
+  let finalResult = runResult;
+
+  if (finalResult.passed < finalResult.total) {
+    const rlFix = readline.createInterface({ input: process.stdin, output: process.stdout });
+
+    while (finalResult.passed < finalResult.total) {
+      const answer = await ask(rlFix, '\nWould you like to fix your code before the follow-up? (y/n): ');
+      if (answer.trim().toLowerCase() !== 'y') break;
+
+      finalCode = await openEditor(finalCode);
+      finalResult = runCode(finalCode, problem.testCases);
+      displayRunResults(finalResult);
+
+      if (finalResult.passed === finalResult.total) {
+        console.log('✅  All tests passing!\n');
+        break;
+      }
+    }
+
+    rlFix.close();
+
+    if (finalCode !== submittedCode) {
+      session = submitCode(session, finalCode);
+      session = setRunResult(session, finalResult);
+    }
+  }
+
+  session = addMessage(session, 'user', 'Submitted code:\n' + finalCode);
   session = addMessage(
     session,
     'assistant',
-    `Test results: ${runResult.passed}/${runResult.total} passed`,
+    `Test results: ${finalResult.passed}/${finalResult.total} passed`,
   );
 
   session = advancePhase(session); // coding → followup
@@ -179,30 +208,6 @@ async function main(): Promise<void> {
     console.log(`\n📅  Next review of "${problem.title}": ${nextReviewDate} (${when})\n`);
   }
 
-  // ── Post-review fix loop ──────────────────────────────────────────────────────
-  if (session.runResult && hasErrors(session.runResult)) {
-    console.log('⚠  Your submission had compilation errors — your code did not run during the interview.');
-    console.log('   You can fix it here for practice (this won\'t affect your score).\n');
-
-    let currentCode = session.submittedCode!;
-
-    while (true) {
-      const rlFix = readline.createInterface({ input: process.stdin, output: process.stdout });
-      const answer = await ask(rlFix, 'Would you like to fix your code? (y/n): ');
-      rlFix.close();
-
-      if (answer.trim().toLowerCase() !== 'y') break;
-
-      currentCode = await openEditor(currentCode);
-      const fixResult = runCode(currentCode, problem.testCases);
-      displayRunResults(fixResult);
-
-      if (!hasErrors(fixResult) && fixResult.passed === fixResult.total) {
-        console.log('✅  All tests passing!\n');
-        break;
-      }
-    }
-  }
 }
 
 main().catch((err: unknown) => {
