@@ -43,12 +43,11 @@ Interview bot will open your editor to allow you to work on the problem - whatev
 npm run dev
 ```
 
-You'll be guided through 6 interview phases:
+You'll be guided through 5 interview phases:
 
-1. **Setup** — select a problem and difficulty
-2. **Clarification** — ask the AI interviewer questions about the problem
+1. **Clarification** — ask the AI interviewer questions about the problem
 3. **Planning** — describe your approach before coding
-4. **Coding** — type your JavaScript solution line by line; type `--submit` on a new line to submit
+4. **Coding** — type your JavaScript solution line by line; save and close your editor to submit
 5. **Follow-up** — the interviewer asks about complexity and trade-offs
 6. **Debrief** — review your score, feedback, and areas for improvement
 
