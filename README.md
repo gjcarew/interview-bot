@@ -46,19 +46,29 @@ npm run dev
 You'll be guided through 5 interview phases:
 
 1. **Clarification** — ask the AI interviewer questions about the problem
-3. **Planning** — describe your approach before coding
-4. **Coding** — type your JavaScript solution line by line; save and close your editor to submit
-5. **Follow-up** — the interviewer asks about complexity and trade-offs
-6. **Debrief** — review your score, feedback, and areas for improvement
+2. **Planning** — describe your approach before coding
+3. **Coding** — your `$EDITOR` opens with the function signature; write your JavaScript solution, then save and close to submit. You have **20 minutes**.
+4. **Follow-up** — the interviewer asks about complexity and trade-offs
+5. **Debrief** — review your score, feedback, and areas for improvement
+
+If your solution fails any test cases, you'll be offered a chance to fix your code before moving to the follow-up phase.
+
+### Controls
+
+| Input | Effect |
+|-------|--------|
+| `next` or `ready` | Advance to the next phase (Clarification, Planning) |
+| `done` | End the follow-up phase |
+| `Ctrl+C` | Exit at any time |
 
 ## Interview Flow
 
 | Phase | Description |
 |-------|-------------|
-| Setup | Problem selection |
+| Setup | Problem selection via spaced repetition |
 | Clarification | Q&A with the interviewer about edge cases and constraints |
 | Planning | Explain your intended approach |
-| Coding | Write and submit your JS solution |
+| Coding | Write and submit your JS solution in your editor (20-min timer) |
 | Follow-up | Complexity and design discussion |
 | Debrief | Scored feedback with strengths and improvements |
 
@@ -74,14 +84,16 @@ npm run build
 
 ```
 src/
-  agents/     # AI agent logic (interviewer persona, prompts)
-  interview/  # session management and phase transitions
-  runner/     # code execution and test case evaluation
-  ui/         # terminal display and user input
-  lib/        # shared utilities
-  types.ts    # core interfaces (Problem, InterviewSession, Feedback, etc.)
+  agents/           # AI agent logic (interviewer persona, prompts)
+  interview/        # session management and phase transitions
+  runner/           # code execution and test case evaluation
+  spacedRepetition/ # SM-2 algorithm and progress tracking
+  ui/               # terminal display and user input
+  lib/              # shared utilities
+  types.ts          # core interfaces (Problem, InterviewSession, Feedback, etc.)
 data/
-  problems/   # problem definitions as TypeScript files
+  problems/         # problem definitions as TypeScript files
+  progress.json     # your spaced repetition progress (auto-generated)
 ```
 
 ## Adding Problems
