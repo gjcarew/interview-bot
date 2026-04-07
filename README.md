@@ -2,7 +2,7 @@
 
 An AI-powered CLI for practicing technical interviews. Simulates a real coding interview with an AI interviewer that guides you through problem clarification, planning, coding, and debrief — all from your terminal.
 
-A secondary goal of this project is to explore agentic coding workflows, sub-agent personas, and agent skills with the aim of writing enterprise-level software that fully leverages AI tools.
+This project was written in Typescript, the challenges are executed in javascript.
 
 ## Features
 
@@ -11,6 +11,7 @@ A secondary goal of this project is to explore agentic coding workflows, sub-age
 - **AI interviewer** — powered by GitHub Models (GPT-4o by default)
 - **Multi-phase interview flow** — mirrors a real technical interview
 - **Structured feedback & debrief** — correctness score, complexity analysis, communication score, strengths/improvements
+- **Spaced repetition** - keeps track of your progress, and determines which problem to show using the SuperMemo-2 spaced repetition algorithm.
 
 ## Prerequisites
 
@@ -33,6 +34,8 @@ GITHUB_TOKEN=your_github_token_here        # PAT with models:read scope, or Copi
 GITHUB_MODELS_ENDPOINT=https://models.inference.ai.azure.com
 INTERVIEW_MODEL=gpt-4o                     # optional — default is gpt-4o
 ```
+
+Interview bot will open your editor to allow you to work on the problem - whatever is in your environment as `$EDITOR`. I recommend something simple like vim or nano so you can practice syntax without the help of a language server. 
 
 ## Usage
 
@@ -60,30 +63,12 @@ You'll be guided through 6 interview phases:
 | Follow-up | Complexity and design discussion |
 | Debrief | Scored feedback with strengths and improvements |
 
-## Problem Bank
-
-Currently includes **Arrays & Hashing** (9 problems from Neetcode 150):
-
-| # | Problem | Difficulty |
-|---|---------|------------|
-| 1 | Contains Duplicate | Easy |
-| 2 | Valid Anagram | Easy |
-| 3 | Two Sum | Easy |
-| 4 | Group Anagrams | Medium |
-| 5 | Top K Frequent Elements | Medium |
-| 6 | Encode and Decode Strings | Medium |
-| 7 | Product of Array Except Self | Medium |
-| 8 | Valid Sudoku | Medium |
-| 9 | Longest Consecutive Sequence | Medium |
-
-Each problem includes multiple test cases that are executed against your submitted code.
-
 ## Development
 
 ```bash
-npm test          # run tests (35 tests)
-npm run lint:fix  # lint and auto-fix
-npm run build     # compile TypeScript to dist/
+npm test          
+npm run lint:fix  
+npm run build     
 ```
 
 ## Architecture
@@ -104,3 +89,6 @@ data/
 
 Problems live in `data/problems/<category>/index.ts` as TypeScript objects implementing the `Problem` interface from `src/types.ts`. Each problem needs an `id`, `neetcodeId`, `title`, `category`, `difficulty`, `description`, `examples`, `constraints`, `functionSignature`, and `testCases`.
 
+## Contributing
+
+Want to support another language? A different model? A different problem set? Feel free to fork this repo and make a contribution. This is released under the MIT license. Go support [Neetcode](https://neetcode.io) for coming up with this list. 
