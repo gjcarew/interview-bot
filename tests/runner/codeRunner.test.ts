@@ -117,6 +117,42 @@ describe('runCode', () => {
     expect(result.failed).toBe(1);
     expect(result.passRate).toBe(0.5);
   });
+
+  it('supports custom invocation for multi-function problems', () => {
+    const code = `
+function encode(strs) {
+  return strs.map((str) => \`\${str.length}#\${str}\`).join('');
+}
+
+function decode(s) {
+  const result = [];
+  let index = 0;
+
+  while (index < s.length) {
+    let delimiter = index;
+    while (s[delimiter] !== '#') delimiter++;
+
+    const length = Number(s.slice(index, delimiter));
+    const start = delimiter + 1;
+    result.push(s.slice(start, start + length));
+    index = start + length;
+  }
+
+  return result;
+}
+`;
+    const cases: TestCase[] = [
+      {
+        input: [['lint', 'code', 'love', 'you']],
+        expected: ['lint', 'code', 'love', 'you'],
+        invocation: '__result__ = decode(encode(__args__[0]))',
+      },
+    ];
+
+    const result = runCode(code, cases);
+    expect(result.results[0].status).toBe('pass');
+    expect(result.passed).toBe(1);
+  });
 });
 
 describe('hasErrors', () => {

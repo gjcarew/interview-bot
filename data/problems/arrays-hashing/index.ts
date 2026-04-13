@@ -146,6 +146,7 @@ export const topKFrequent: Problem = {
     { input: [[1], 1], expected: [1], label: 'single element' },
     { input: [[1, 1, 2], 1], expected: [1], label: 'top 1 of two unique' },
     { input: [[4, 4, 4, 5, 5, 6], 2], expected: [4, 5], label: 'top 2 of three unique' },
+    { input: [[5, 5, 5, 4, 4, 4, 4, 3, 3, 2], 3], expected: [4, 5, 3], label: 'Mixed order, top 3 of 4 unique' },
   ],
 };
 
@@ -180,21 +181,25 @@ Implement the encode function that encodes a list of strings to a single string,
       input: [['lint', 'code', 'love', 'you']],
       expected: ['lint', 'code', 'love', 'you'],
       label: 'basic round-trip',
+      invocation: '__result__ = decode(encode(__args__[0]))',
     },
     {
       input: [['we', 'say', ':', 'yes']],
       expected: ['we', 'say', ':', 'yes'],
       label: 'special characters',
+      invocation: '__result__ = decode(encode(__args__[0]))',
     },
     {
       input: [['']],
       expected: [''],
       label: 'single empty string',
+      invocation: '__result__ = decode(encode(__args__[0]))',
     },
     {
       input: [[]],
       expected: [],
       label: 'empty list',
+      invocation: '__result__ = decode(encode(__args__[0]))',
     },
   ],
 };

@@ -11,6 +11,8 @@ export interface TestCase {
   expected: unknown;
   /** Optional human-readable label shown in results */
   label?: string;
+  /** Optional JS statement run in the VM. __args__ contains input values and must assign to __result__. */
+  invocation?: string;
 }
 
 export interface Example {

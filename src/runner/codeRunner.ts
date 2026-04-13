@@ -68,8 +68,9 @@ export function runCode(code: string, testCases: TestCase[]): RunResult {
     }
 
     // Call the function inside vm so the timeout applies to the invocation too
-    const argsJson = testCase.input.map((a) => JSON.stringify(a)).join(', ');
-    const callScript = new vm.Script(`__result__ = ${fnName}(${argsJson})`);
+    const invocation = testCase.invocation?.trim() || `__result__ = ${fnName}(...__args__)`;
+    const callScript = new vm.Script(invocation);
+    sandbox['__args__'] = testCase.input;
     sandbox['__result__'] = undefined;
 
     const start = Date.now();
