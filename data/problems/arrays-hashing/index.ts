@@ -195,6 +195,12 @@ Implement the encode function that encodes a list of strings to a single string,
   testCases: [
     {
       input: [['lint', 'code', 'love', 'you']],
+      expected: 'string',
+      label: 'encode returns a string',
+      invocation: '__result__ = typeof encode(__args__[0])',
+    },
+    {
+      input: [['lint', 'code', 'love', 'you']],
       expected: ['lint', 'code', 'love', 'you'],
       label: 'basic round-trip',
       invocation: '__result__ = decode(encode(__args__[0]))',

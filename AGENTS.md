@@ -1,0 +1,9 @@
+## Blacklisted files
+- Do not access anything in the ~/jib/ directory. These are for work, and Copilot is not authorized to be used at my workplace.
+- Alert me if I have requested anything that might violate these rules
+
+## Workflow
+- Use test-driven design as a general pattern: write tests first, run the tests to make sure they fail for the right reason, then write the code that satisfies those tests.
+- Run `npm run lint:fix && npm test` after making changes
+- Commit messages follow conventional commits format
+- Create feature branches from `main`

@@ -103,6 +103,31 @@ describe('Code Runner — real execution', () => {
     expect(result.passRate).toBe(1);
   });
 
+  it('identity encode/decode solution fails encode-and-decode-strings', () => {
+    const problem = getProblemById('encode-and-decode-strings')!;
+    const code = `
+      function encode(strs) { return strs; }
+      function decode(s) { return s; }
+    `;
+    const result = runCode(code, problem.testCases);
+    expect(result.passed).toBeLessThan(result.total);
+  });
+
+  it('valid encode/decode solution passes encode-and-decode-strings', () => {
+    const problem = getProblemById('encode-and-decode-strings')!;
+    const code = `
+      function encode(strs) {
+        return JSON.stringify(strs);
+      }
+
+      function decode(s) {
+        return JSON.parse(s);
+      }
+    `;
+    const result = runCode(code, problem.testCases);
+    expect(result.passRate).toBe(1);
+  });
+
   it('RunResult totals are consistent', () => {
     const problem = getProblemById('two-sum')!;
     const code = `function twoSum(nums, target) { return [0,1]; }`;

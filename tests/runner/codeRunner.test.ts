@@ -66,6 +66,7 @@ function twoSum(nums, target) {
     expect(result.results[0].status).toBe('pass');
     expect(result.results[0].actual).toEqual([2, 1]);
   });
+
   it('fails all test cases for an always-wrong solution', () => {
     const result = runCode(twoSumWrong, twoSumCases);
     expect(result.results.every((r: TestResult) => r.status === 'fail')).toBe(true);
@@ -129,6 +130,24 @@ function twoSum(nums, target) {
   it('records durationMs >= 0 for every result', () => {
     const result = runCode(twoSumCorrect, twoSumCases);
     expect(result.results.every((r: TestResult) => r.durationMs >= 0)).toBe(true);
+  });
+
+  it('captures console output separately for each test case', () => {
+    const code = `
+function echo(value) {
+  console.log('value', value);
+  return value;
+}
+`;
+    const cases: TestCase[] = [
+      { input: [1], expected: 1 },
+      { input: [2], expected: 2 },
+    ];
+
+    const result = runCode(code, cases);
+
+    expect(result.results[0].consoleOutput).toEqual(['value 1']);
+    expect(result.results[1].consoleOutput).toEqual(['value 2']);
   });
 
   it('captures actual value on a passing test', () => {

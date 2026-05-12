@@ -8,6 +8,7 @@ This project was written in Typescript, the challenges are executed in javascrip
 
 - **Neetcode 150 problem bank** — curated problems with real test cases
 - **Real code execution** — your JavaScript solution is run against test cases and graded
+- **Visible debugging output** — failing test output includes expected/actual values plus captured `console.log` lines
 - **AI interviewer** — powered by GitHub Models (GPT-4o by default)
 - **Multi-phase interview flow** — mirrors a real technical interview
 - **Structured feedback & debrief** — correctness score, complexity analysis, communication score, strengths/improvements
@@ -51,7 +52,7 @@ You'll be guided through 5 interview phases:
 4. **Follow-up** — the interviewer asks about complexity and trade-offs
 5. **Debrief** — review your score, feedback, and areas for improvement
 
-If your solution fails any test cases, you'll be offered a chance to fix your code before moving to the follow-up phase.
+If your solution fails any test cases, you'll be offered a chance to fix your code before moving to the follow-up phase. The failing test view includes expected vs. actual output, and any `console.log` output emitted during each test run is shown inline.
 
 ### Controls
 

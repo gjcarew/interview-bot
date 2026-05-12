@@ -48,6 +48,8 @@ export interface TestResult {
   status: TestStatus;
   /** Actual value returned by the user's code (undefined on error/timeout) */
   actual?: unknown;
+  /** Captured console output emitted while running this test case */
+  consoleOutput?: string[];
   /** Error message if status is 'error' */
   errorMessage?: string;
   /** Execution time in milliseconds */
