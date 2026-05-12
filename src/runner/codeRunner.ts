@@ -5,7 +5,40 @@ function deepEqual(a: unknown, b: unknown): boolean {
   return JSON.stringify(a) === JSON.stringify(b);
 }
 
+/** Normalize arrays and objects before order-insensitive deep equality checks. */
+function normalizeForUnorderedArrayComparison(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value
+      .map(normalizeForUnorderedArrayComparison)
+      .sort((left, right) =>
+        JSON.stringify(left).localeCompare(JSON.stringify(right))
+      );
+  }
+
+  if (value !== null && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value)
+        .sort(([left], [right]) => left.localeCompare(right))
+        .map(([key, nestedValue]) => [key, normalizeForUnorderedArrayComparison(nestedValue)])
+    );
+  }
+
+  return value;
+}
+
+function matchesExpected(actual: unknown, testCase: TestCase): boolean {
+  if (testCase.comparison === 'unordered-array-deep-equal') {
+    return deepEqual(
+      normalizeForUnorderedArrayComparison(actual),
+      normalizeForUnorderedArrayComparison(testCase.expected)
+    );
+  }
+
+  return deepEqual(actual, testCase.expected);
+}
+
 /** Reformat vm.Script syntax error stacks from "file:line\n code\n ^^^" to "Line N in file\n code\n ^^^" */
+
 function formatSyntaxError(e: unknown): string {
   const errLike = e as { stack?: string; message?: string };
   const stack = typeof errLike?.stack === 'string' ? errLike.stack : null;
@@ -91,7 +124,7 @@ export function runCode(code: string, testCases: TestCase[]): RunResult {
     const durationMs = Date.now() - start;
     const actual = sandbox['__result__'];
 
-    const status = deepEqual(actual, testCase.expected) ? 'pass' : 'fail';
+    const status = matchesExpected(actual, testCase) ? 'pass' : 'fail';
     return { testCase, status, actual, durationMs } satisfies TestResult;
   });
 

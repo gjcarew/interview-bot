@@ -15,9 +15,24 @@ function twoSum(nums, target) {
 const twoSumWrong = `function twoSum(nums, target) { return []; }`;
 
 const twoSumCases: TestCase[] = [
-  { input: [[2, 7, 11, 15], 9], expected: [0, 1], label: 'basic' },
-  { input: [[3, 2, 4], 6],      expected: [1, 2], label: 'non-zero start' },
-  { input: [[3, 3], 6],          expected: [0, 1], label: 'duplicates' },
+  {
+    input: [[2, 7, 11, 15], 9],
+    expected: [0, 1],
+    label: 'basic',
+    comparison: 'unordered-array-deep-equal',
+  },
+  {
+    input: [[3, 2, 4], 6],
+    expected: [1, 2],
+    label: 'non-zero start',
+    comparison: 'unordered-array-deep-equal',
+  },
+  {
+    input: [[3, 3], 6],
+    expected: [0, 1],
+    label: 'duplicates',
+    comparison: 'unordered-array-deep-equal',
+  },
 ];
 
 describe('runCode', () => {
@@ -28,6 +43,29 @@ describe('runCode', () => {
     expect(result.passed).toBe(result.total);
   });
 
+  it('passes when unordered array output has the right values in a different order', () => {
+    const reversedTwoSum = `
+function twoSum(nums, target) {
+  const map = {};
+  for (let i = 0; i < nums.length; i++) {
+    const complement = target - nums[i];
+    if (map[complement] !== undefined) return [i, map[complement]];
+    map[nums[i]] = i;
+  }
+}
+`;
+
+    const result = runCode(reversedTwoSum, [
+      {
+        input: [[3, 2, 4], 6],
+        expected: [1, 2],
+        comparison: 'unordered-array-deep-equal',
+      },
+    ]);
+
+    expect(result.results[0].status).toBe('pass');
+    expect(result.results[0].actual).toEqual([2, 1]);
+  });
   it('fails all test cases for an always-wrong solution', () => {
     const result = runCode(twoSumWrong, twoSumCases);
     expect(result.results.every((r: TestResult) => r.status === 'fail')).toBe(true);

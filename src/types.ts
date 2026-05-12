@@ -9,6 +9,8 @@ export interface TestCase {
   input: unknown[];
   /** Expected return value */
   expected: unknown;
+  /** Optional comparison strategy for the returned value */
+  comparison?: 'deep-equal' | 'unordered-array-deep-equal';
   /** Optional human-readable label shown in results */
   label?: string;
   /** Optional JS statement run in the VM. __args__ contains input values and must assign to __result__. */
