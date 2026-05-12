@@ -5,3 +5,4 @@ coverage/
 *.js.map
 data/progress.json
 copilot-instructions.md
+AGENTS.md
