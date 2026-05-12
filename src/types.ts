@@ -9,6 +9,8 @@ export interface TestCase {
   input: unknown[];
   /** Expected return value */
   expected: unknown;
+  /** Optional comparison strategy for the returned value */
+  comparison?: 'deep-equal' | 'unordered-array-deep-equal';
   /** Optional human-readable label shown in results */
   label?: string;
   /** Optional JS statement run in the VM. __args__ contains input values and must assign to __result__. */
@@ -46,6 +48,8 @@ export interface TestResult {
   status: TestStatus;
   /** Actual value returned by the user's code (undefined on error/timeout) */
   actual?: unknown;
+  /** Captured console output emitted while running this test case */
+  consoleOutput?: string[];
   /** Error message if status is 'error' */
   errorMessage?: string;
   /** Execution time in milliseconds */

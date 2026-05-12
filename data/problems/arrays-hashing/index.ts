@@ -75,10 +75,26 @@ You can return the answer in any order.`,
   ],
   functionSignature: `function twoSum(nums, target) {\n  \n}`,
   testCases: [
-    { input: [[2, 7, 11, 15], 9], expected: [0, 1] },
-    { input: [[3, 2, 4], 6], expected: [1, 2] },
-    { input: [[3, 3], 6], expected: [0, 1] },
-    { input: [[1, 5, 6, 7], 13], expected: [2, 3] },
+    {
+      input: [[2, 7, 11, 15], 9],
+      expected: [0, 1],
+      comparison: 'unordered-array-deep-equal',
+    },
+    {
+      input: [[3, 2, 4], 6],
+      expected: [1, 2],
+      comparison: 'unordered-array-deep-equal',
+    },
+    {
+      input: [[3, 3], 6],
+      expected: [0, 1],
+      comparison: 'unordered-array-deep-equal',
+    },
+    {
+      input: [[1, 5, 6, 7], 13],
+      expected: [2, 3],
+      comparison: 'unordered-array-deep-equal',
+    },
   ],
 };
 
@@ -177,6 +193,12 @@ Implement the encode function that encodes a list of strings to a single string,
   ],
   functionSignature: `function encode(strs) {\n  \n}\n\nfunction decode(s) {\n  \n}`,
   testCases: [
+    {
+      input: [['lint', 'code', 'love', 'you']],
+      expected: 'string',
+      label: 'encode returns a string',
+      invocation: '__result__ = typeof encode(__args__[0])',
+    },
     {
       input: [['lint', 'code', 'love', 'you']],
       expected: ['lint', 'code', 'love', 'you'],

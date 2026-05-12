@@ -1,8 +1,10 @@
 import {
+  displayRunResults,
   displayTimerStart,
   displayTimerWarning,
   displayTimerExpired,
 } from '../../src/ui/display';
+import type { RunResult } from '../../src/types';
 
 describe('Timer display functions', () => {
   let consoleSpy: jest.SpyInstance;
@@ -57,5 +59,41 @@ describe('Timer display functions', () => {
       const output = consoleSpy.mock.calls.map((c) => c.join(' ')).join('\n');
       expect(output).toContain('🔔');
     });
+  });
+});
+
+describe('displayRunResults', () => {
+  let consoleSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    consoleSpy.mockRestore();
+  });
+
+  it('shows captured console output alongside failing tests', () => {
+    const result: RunResult = {
+      passed: 0,
+      failed: 1,
+      total: 1,
+      passRate: 0,
+      results: [
+        {
+          testCase: { input: [[1]], expected: [1], label: 'single element' },
+          status: 'fail',
+          actual: [],
+          durationMs: 0,
+          consoleOutput: ['value 1'],
+        },
+      ],
+    };
+
+    displayRunResults(result);
+
+    const output = consoleSpy.mock.calls.map((c) => c.join(' ')).join('\n');
+    expect(output).toContain('Console output');
+    expect(output).toContain('value 1');
   });
 });

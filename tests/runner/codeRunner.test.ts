@@ -15,9 +15,24 @@ function twoSum(nums, target) {
 const twoSumWrong = `function twoSum(nums, target) { return []; }`;
 
 const twoSumCases: TestCase[] = [
-  { input: [[2, 7, 11, 15], 9], expected: [0, 1], label: 'basic' },
-  { input: [[3, 2, 4], 6],      expected: [1, 2], label: 'non-zero start' },
-  { input: [[3, 3], 6],          expected: [0, 1], label: 'duplicates' },
+  {
+    input: [[2, 7, 11, 15], 9],
+    expected: [0, 1],
+    label: 'basic',
+    comparison: 'unordered-array-deep-equal',
+  },
+  {
+    input: [[3, 2, 4], 6],
+    expected: [1, 2],
+    label: 'non-zero start',
+    comparison: 'unordered-array-deep-equal',
+  },
+  {
+    input: [[3, 3], 6],
+    expected: [0, 1],
+    label: 'duplicates',
+    comparison: 'unordered-array-deep-equal',
+  },
 ];
 
 describe('runCode', () => {
@@ -26,6 +41,30 @@ describe('runCode', () => {
     expect(result.results.every((r: TestResult) => r.status === 'pass')).toBe(true);
     expect(result.passRate).toBe(1);
     expect(result.passed).toBe(result.total);
+  });
+
+  it('passes when unordered array output has the right values in a different order', () => {
+    const reversedTwoSum = `
+function twoSum(nums, target) {
+  const map = {};
+  for (let i = 0; i < nums.length; i++) {
+    const complement = target - nums[i];
+    if (map[complement] !== undefined) return [i, map[complement]];
+    map[nums[i]] = i;
+  }
+}
+`;
+
+    const result = runCode(reversedTwoSum, [
+      {
+        input: [[3, 2, 4], 6],
+        expected: [1, 2],
+        comparison: 'unordered-array-deep-equal',
+      },
+    ]);
+
+    expect(result.results[0].status).toBe('pass');
+    expect(result.results[0].actual).toEqual([2, 1]);
   });
 
   it('fails all test cases for an always-wrong solution', () => {
@@ -91,6 +130,24 @@ describe('runCode', () => {
   it('records durationMs >= 0 for every result', () => {
     const result = runCode(twoSumCorrect, twoSumCases);
     expect(result.results.every((r: TestResult) => r.durationMs >= 0)).toBe(true);
+  });
+
+  it('captures console output separately for each test case', () => {
+    const code = `
+function echo(value) {
+  console.log('value', value);
+  return value;
+}
+`;
+    const cases: TestCase[] = [
+      { input: [1], expected: 1 },
+      { input: [2], expected: 2 },
+    ];
+
+    const result = runCode(code, cases);
+
+    expect(result.results[0].consoleOutput).toEqual(['value 1']);
+    expect(result.results[1].consoleOutput).toEqual(['value 2']);
   });
 
   it('captures actual value on a passing test', () => {

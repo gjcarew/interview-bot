@@ -119,6 +119,11 @@ export function displayRunResults(result: RunResult): void {
     } else {
       console.log(`  ${icon} ${styled(A.yellow, label)} — timed out ${time}`);
     }
+
+    if (r.consoleOutput?.length) {
+      console.log(`     ${styled(A.dim, 'Console output:')}`);
+      r.consoleOutput.forEach((line) => console.log(`     ${styled(A.dim, line)}`));
+    }
   });
 
   const summaryColor = result.passed === result.total ? A.green : result.passed === 0 ? A.red : A.yellow;

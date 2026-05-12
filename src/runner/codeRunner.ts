@@ -1,8 +1,40 @@
 import * as vm from 'vm';
+import { inspect } from 'util';
 import { TestCase, TestResult, RunResult } from '../types';
 
 function deepEqual(a: unknown, b: unknown): boolean {
   return JSON.stringify(a) === JSON.stringify(b);
+}
+
+function normalizeForUnorderedArrayComparison(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value
+      .map(normalizeForUnorderedArrayComparison)
+      .sort((left, right) =>
+        JSON.stringify(left).localeCompare(JSON.stringify(right))
+      );
+  }
+
+  if (value !== null && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value)
+        .sort(([left], [right]) => left.localeCompare(right))
+        .map(([key, nestedValue]) => [key, normalizeForUnorderedArrayComparison(nestedValue)])
+    );
+  }
+
+  return value;
+}
+
+function matchesExpected(actual: unknown, testCase: TestCase): boolean {
+  if (testCase.comparison === 'unordered-array-deep-equal') {
+    return deepEqual(
+      normalizeForUnorderedArrayComparison(actual),
+      normalizeForUnorderedArrayComparison(testCase.expected)
+    );
+  }
+
+  return deepEqual(actual, testCase.expected);
 }
 
 /** Reformat vm.Script syntax error stacks from "file:line\n code\n ^^^" to "Line N in file\n code\n ^^^" */
@@ -20,6 +52,11 @@ function formatRuntimeError(e: unknown): string {
   const errLike = e as { stack?: string; message?: string };
   if (typeof errLike?.stack === 'string') return errLike.stack;
   return errLike?.message ?? String(e);
+}
+
+function formatConsoleArg(value: unknown): string {
+  if (typeof value === 'string') return value;
+  return inspect(value, { depth: 4, breakLength: Infinity, maxArrayLength: 50 });
 }
 
 export function runCode(code: string, testCases: TestCase[]): RunResult {
@@ -40,7 +77,15 @@ export function runCode(code: string, testCases: TestCase[]): RunResult {
       } satisfies TestResult;
     }
 
-    const sandbox: Record<string, unknown> = {};
+    const consoleOutput: string[] = [];
+    const sandbox: Record<string, unknown> = {
+      console: {
+        log: (...args: unknown[]) => consoleOutput.push(args.map(formatConsoleArg).join(' ')),
+        info: (...args: unknown[]) => consoleOutput.push(args.map(formatConsoleArg).join(' ')),
+        warn: (...args: unknown[]) => consoleOutput.push(args.map(formatConsoleArg).join(' ')),
+        error: (...args: unknown[]) => consoleOutput.push(args.map(formatConsoleArg).join(' ')),
+      },
+    };
     vm.createContext(sandbox);
 
     let script: vm.Script;
@@ -84,6 +129,7 @@ export function runCode(code: string, testCases: TestCase[]): RunResult {
       return {
         testCase,
         status: isTimeout ? 'timeout' : 'error',
+        consoleOutput: consoleOutput.length > 0 ? [...consoleOutput] : undefined,
         errorMessage: isTimeout ? err.message : formatRuntimeError(e),
         durationMs: Date.now() - start,
       } satisfies TestResult;
@@ -91,8 +137,14 @@ export function runCode(code: string, testCases: TestCase[]): RunResult {
     const durationMs = Date.now() - start;
     const actual = sandbox['__result__'];
 
-    const status = deepEqual(actual, testCase.expected) ? 'pass' : 'fail';
-    return { testCase, status, actual, durationMs } satisfies TestResult;
+    const status = matchesExpected(actual, testCase) ? 'pass' : 'fail';
+    return {
+      testCase,
+      status,
+      actual,
+      consoleOutput: consoleOutput.length > 0 ? [...consoleOutput] : undefined,
+      durationMs,
+    } satisfies TestResult;
   });
 
   const passed = results.filter((r) => r.status === 'pass').length;

@@ -1,6 +1,6 @@
 import { getInterviewerResponse } from '../../src/agents/interviewer';
 import { llmClient } from '../../src/lib/llm';
-import { createSession, addMessage, advancePhase } from '../../src/interview/session';
+import { createSession, addMessage, advancePhase, submitCode, setRunResult } from '../../src/interview/session';
 import type { Problem } from '../../src/types';
 
 jest.mock('../../src/lib/llm');
@@ -116,5 +116,59 @@ describe('getInterviewerResponse', () => {
     await getInterviewerResponse(session);
 
     expect(mockCreate).toHaveBeenCalledTimes(1);
+  });
+
+  it('adds direct-fix escalation guidance for blocked users in follow-up', async () => {
+    mockCreate.mockReturnValue(makeMockResponse('Here is the fix.'));
+
+    let session = createSession(mockProblem, 'Easy');
+    session = { ...session, phase: 'followup' };
+    session = submitCode(session, 'function twoSum(nums, target) { return []; }');
+    session = setRunResult(session, {
+      passed: 0,
+      failed: 1,
+      total: 1,
+      passRate: 0,
+      results: [
+        {
+          testCase: { input: [[2, 7, 11, 15], 9], expected: [0, 1], label: 'basic' },
+          status: 'fail',
+          actual: [],
+          durationMs: 0,
+          consoleOutput: ['map []'],
+        },
+      ],
+    });
+    session = addMessage(session, 'user', 'No, write the exact code. I cannot debug here.');
+
+    await getInterviewerResponse(session);
+
+    const [callArgs] = mockCreate.mock.calls;
+    const messages: Array<{ role: string; content: string }> = callArgs[0].messages;
+    const systemPrompt = messages[0].content;
+
+    expect(systemPrompt).toContain('provide the concrete corrected code');
+    expect(systemPrompt).toContain('Do not tell them to use console.log');
+    expect(systemPrompt).toContain('Submitted code');
+    expect(systemPrompt).toContain('Expected: [0,1]');
+    expect(systemPrompt).toContain('Actual: []');
+    expect(systemPrompt).toContain('Console output:');
+  });
+
+  it('keeps the no-solution rule during coding phase', async () => {
+    mockCreate.mockReturnValue(makeMockResponse('Think about edge cases.'));
+
+    let session = createSession(mockProblem, 'Easy');
+    session = { ...session, phase: 'coding' };
+    session = addMessage(session, 'user', 'Write the exact code for me.');
+
+    await getInterviewerResponse(session);
+
+    const [callArgs] = mockCreate.mock.calls;
+    const messages: Array<{ role: string; content: string }> = callArgs[0].messages;
+    const systemPrompt = messages[0].content;
+
+    expect(systemPrompt).toContain('NEVER complete the candidate\'s code for them');
+    expect(systemPrompt).not.toContain('provide the concrete corrected code');
   });
 });
