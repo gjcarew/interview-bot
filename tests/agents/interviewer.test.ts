@@ -102,6 +102,47 @@ describe('getInterviewerResponse', () => {
     expect(clarificationSystemPrompt).not.toBe(codingSystemPrompt);
   });
 
+  it.each(['clarification', 'planning', 'followup'] as const)(
+    'ends the request with a user turn when opening the %s phase',
+    async (phase) => {
+      mockCreate.mockReturnValue(makeMockResponse('Hello'));
+      const session = {
+        ...addMessage(createSession(mockProblem, 'Easy'), 'assistant', 'Any questions?'),
+        phase,
+      };
+
+      await getInterviewerResponse(session);
+
+      const messages: Array<{ role: string; content: string }> =
+        mockCreate.mock.calls[0][0].messages;
+      const last = messages[messages.length - 1];
+      expect(last.role).toBe('user');
+      expect(last.content).toContain(phase);
+      expect(session.messages).toHaveLength(1);
+    },
+  );
+
+  it('ends the request with a user turn when there is no history', async () => {
+    mockCreate.mockReturnValue(makeMockResponse('Hello'));
+
+    await getInterviewerResponse(createSession(mockProblem, 'Easy'));
+
+    const messages: Array<{ role: string }> = mockCreate.mock.calls[0][0].messages;
+    expect(messages.map((m) => m.role)).toEqual(['system', 'user']);
+  });
+
+  it('does not add a turn when the candidate spoke last', async () => {
+    mockCreate.mockReturnValue(makeMockResponse('Yes.'));
+    const session = addMessage(createSession(mockProblem, 'Easy'), 'user', 'Can it be empty?');
+
+    await getInterviewerResponse(session);
+
+    const messages: Array<{ role: string; content: string }> =
+      mockCreate.mock.calls[0][0].messages;
+    expect(messages).toHaveLength(2);
+    expect(messages[1].content).toBe('Can it be empty?');
+  });
+
   it('handles LLM returning null content by throwing a descriptive error', async () => {
     mockCreate.mockReturnValue(makeMockResponse(null));
     const session = createSession(mockProblem, 'Easy');

@@ -160,12 +160,21 @@ ${blockedDebugging ? '- The latest user message says they are blocked by the int
 export async function getInterviewerResponse(session: InterviewSession): Promise<string> {
   const systemPrompt = buildSystemPrompt(session);
 
-  const messages = [
+  const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
     { role: 'system' as const, content: systemPrompt },
     ...session.messages
       .filter((m) => m.role !== 'system')
       .map((m) => ({ role: m.role, content: m.content })),
   ];
+
+  // Phase openings have no new candidate message. Ollama treats a trailing assistant
+  // message as text to continue and returns nothing, so always end on a user turn.
+  if (messages[messages.length - 1].role !== 'user') {
+    messages.push({
+      role: 'user',
+      content: `I'm ready to begin the ${session.phase} phase.`,
+    });
+  }
 
   const response = await llmClient.chat.completions.create({
     model: DEFAULT_MODEL,
