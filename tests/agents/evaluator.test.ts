@@ -133,6 +133,16 @@ describe('evaluateSession', () => {
     expect(allContent).toContain(code);
   });
 
+  test('requests JSON output at a low temperature', async () => {
+    const session = buildSession('function twoSum() {}', 5, 5);
+
+    await evaluateSession(session);
+
+    const call = getMockedCreate().mock.calls[0][0];
+    expect(call.response_format).toEqual({ type: 'json_object' });
+    expect(call.temperature).toBeLessThanOrEqual(0.3);
+  });
+
   test('strengths and improvements are arrays', async () => {
     const session = buildSession('function twoSum() {}', 5, 5);
 

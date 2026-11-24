@@ -47,6 +47,9 @@ Respond with ONLY a valid JSON object with these exact fields:
       { role: 'system', content: 'You are an expert technical interviewer evaluating a coding interview session.' },
       { role: 'user', content: prompt },
     ],
+    // Small local models drift from bare JSON without these.
+    response_format: { type: 'json_object' },
+    temperature: 0.2,
   });
 
   const content = response.choices[0]?.message?.content ?? '';

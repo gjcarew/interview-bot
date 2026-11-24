@@ -25,6 +25,7 @@ import {
   displayTimerExpired,
 } from './ui/display';
 import { loadProgress, saveProgress, getNextProblem, recordResult } from './spacedRepetition/index';
+import { checkLlmConnection } from './lib/llm';
 import type { InterviewSession } from './types';
 
 dotenv.config();
@@ -38,6 +39,12 @@ async function main(): Promise<void> {
     console.log('');
     process.exit(0);
   });
+
+  const connection = await checkLlmConnection();
+  if (!connection.ok) {
+    console.error(`\n❌  ${connection.message}\n`);
+    process.exit(1);
+  }
 
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 

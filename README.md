@@ -9,30 +9,56 @@ This project was written in Typescript, the challenges are executed in javascrip
 - **Neetcode 150 problem bank** — curated problems with real test cases
 - **Real code execution** — your JavaScript solution is run against test cases and graded
 - **Visible debugging output** — failing test output includes expected/actual values plus captured `console.log` lines
-- **AI interviewer** — powered by GitHub Models (GPT-4o by default)
+- **AI interviewer** — runs locally via [Ollama](https://ollama.com) (Qwen2.5 7B by default), or remotely via GitHub Models
 - **Multi-phase interview flow** — mirrors a real technical interview
 - **Structured feedback & debrief** — correctness score, complexity analysis, communication score, strengths/improvements
 - **Spaced repetition** - keeps track of your progress, and determines which problem to show using the SuperMemo-2 spaced repetition algorithm.
 
 ## Prerequisites
 
-- Node.js 18+
-- A GitHub account with a Copilot subscription (for [GitHub Models](https://github.com/marketplace/models) API access)
+- Node.js 22 (if you use nvm, run `nvm use` to pick up the version in `.nvmrc`)
+- [Ollama](https://ollama.com) (`brew install ollama`), or optionally a GitHub account with a Copilot subscription for [GitHub Models](https://github.com/marketplace/models)
 
 ## Setup
 
 ```bash
 git clone https://github.com/your-username/interview-bot.git
 cd interview-bot
+nvm use        # optional, if you use nvm
 npm install
 cp .env.example .env
 ```
 
-Edit `.env` and fill in your values:
+Start Ollama and pull the default model:
+
+```bash
+brew services start ollama   # or run `ollama serve` in another terminal, or open the Ollama app
+ollama pull qwen2.5:7b
+```
+
+When you're finished practicing:
+
+```bash
+ollama stop qwen2.5:7b       # unload the model to free memory, but keep the server running
+brew services stop ollama    # stop the server (Ctrl+C if you used `ollama serve`, or quit the app)
+```
+
+On Apple Silicon, use native (arm64) builds of Homebrew and Ollama. Ollama can't use the GPU when running under Rosetta. While the model is loaded, `ollama ps` should show it running on the GPU.
+
+The defaults in `.env` work out of the box. To use a different model, set `LLM_MODEL`:
 
 ```env
+LLM_PROVIDER=ollama
+LLM_MODEL=qwen2.5:7b         # on 8 GB machines, llama3.2:3b or qwen2.5:3b are lighter options
+```
+
+The app checks that Ollama is reachable and the model is pulled before starting an interview.
+
+To use GitHub Models instead:
+
+```env
+LLM_PROVIDER=github
 GITHUB_TOKEN=your_github_token_here        # PAT with models:read scope, or Copilot token
-GITHUB_MODELS_ENDPOINT=https://models.inference.ai.azure.com
 INTERVIEW_MODEL=gpt-4o                     # optional — default is gpt-4o
 ```
 
